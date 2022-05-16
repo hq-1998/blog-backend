@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const User = require("../../model/userSchema");
+const { jwtSign } = require("./jwt");
+const { default: sendFail } = require("../../utils/sendFail");
 mongoose.connect("mongodb://localhost:27017/dbs");
 
 router.post("/register", (req, res) => {
   const { username, password } = req.body;
-  if (password) {
+  if (username && password) {
     const hashPwd = bcrypt.hashSync(password, 10);
     const obj = { username, password: hashPwd };
 
@@ -19,17 +20,11 @@ router.post("/register", (req, res) => {
           message: "注册成功",
         });
       } else {
-        res.send({
-          status: "fail",
-          message: "注册失败",
-        });
+        sendFail(res, "注册失败");
       }
     });
   } else {
-    res.send({
-      status: "fail",
-      message: "参数错误",
-    });
+    sendFail(res, "参数错误");
   }
 });
 
@@ -40,7 +35,7 @@ router.post("/login", (req, res) => {
       if (data) {
         const isPwdValid = bcrypt.compareSync(password, data.password);
         if (isPwdValid) {
-          const token = jwt.sign({ ...data }, "hq", { expiresIn: 10 * 1 });
+          const token = jwtSign({ ...data });
           res.send({
             status: "success",
             message: "登录成功",
@@ -50,23 +45,14 @@ router.post("/login", (req, res) => {
             },
           });
         } else {
-          res.send({
-            status: "fail",
-            message: "用户名或密码错误",
-          });
+          sendFail(res, "用户名或密码错误");
         }
       } else {
-        res.send({
-          status: "fail",
-          message: "用户不存在",
-        });
+        sendFail(res, "用户不存在");
       }
     });
   } else {
-    res.send({
-      status: "fail",
-      message: "参数错误",
-    });
+    sendFail(res, "参数错误");
   }
 });
 
