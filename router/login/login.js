@@ -3,10 +3,8 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-
+const User = require("../../model/userSchema");
 mongoose.connect("mongodb://localhost:27017/dbs");
-const db = mongoose.connection;
-const loginCollection = db.collection("login");
 
 router.post("/register", (req, res) => {
   const { username, password } = req.body;
@@ -14,7 +12,7 @@ router.post("/register", (req, res) => {
     const hashPwd = bcrypt.hashSync(password, 10);
     const obj = { username, password: hashPwd };
 
-    loginCollection.insertOne(obj, (err, result) => {
+    User.insertOne(obj, (err, result) => {
       if (result) {
         res.send({
           status: "success",
@@ -38,17 +36,17 @@ router.post("/register", (req, res) => {
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
   if (username && password) {
-    loginCollection.findOne({ username }, (err, data) => {
+    User.findOne({ username }, (err, data) => {
       if (data) {
         const isPwdValid = bcrypt.compareSync(password, data.password);
         if (isPwdValid) {
-          const token = jwt.sign(data, "hq", { expiresIn: 10 * 1 });
+          const token = jwt.sign({ ...data }, "hq", { expiresIn: 10 * 1 });
           res.send({
             status: "success",
             message: "登录成功",
             data: {
-              ...data,
-              token
+              username: data.username,
+              token,
             },
           });
         } else {
