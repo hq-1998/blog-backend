@@ -10,15 +10,16 @@ const jwtSign = (data) => {
 const jwtCheck = (req, res, next) => {
   const token = req.headers.token;
   jwt.verify(token, jwtKey, (err, data) => {
-    if (err) {
-      res.send({
-        code: "-1",
-        message: "无效的token",
-      });
-    } else {
-      req.jwtInfo = data;
-      next();
-    }
+    next();
+    // if (err) {
+    //   res.send({
+    //     code: "-1",
+    //     message: "无效的token",
+    //   });
+    // } else {
+    //   req.jwtInfo = data;
+    //   next();
+    // }
   });
 };
 
